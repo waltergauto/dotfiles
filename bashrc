@@ -49,3 +49,67 @@ if [ -f `which powerline-daemon` ]; then
 fi
 
 export EDITOR=vim
+
+
+### Support Git
+# .bashrc
+
+# Source global definitions
+if [ -f /etc/bashrc ]; then
+        . /etc/bashrc
+fi
+
+# User specific environment
+if ! [[ "$PATH" =~ "$HOME/.local/bin:$HOME/bin:" ]]
+then
+    PATH="$HOME/.local/bin:$HOME/bin:$PATH"
+fi
+export PATH
+
+# Uncomment the following line if you don't like systemctl's auto-paging feature:
+# export SYSTEMD_PAGER=
+
+# User specific aliases and functions
+
+alias rm='rm -i'
+alias cp='cp -i'
+alias mv='mv -i'
+
+
+# Función avanzada para mostrar información de Git
+git_prompt() {
+    local git_status=""
+    local branch=""
+
+    # Verificar si estamos en un repositorio Git
+    if git rev-parse --git-dir > /dev/null 2>&1; then
+        # Obtener la rama actual
+        branch=$(git symbolic-ref --short HEAD 2>/dev/null || git describe --tags --exact-match 2>/dev/null || git rev-parse --short HEAD 2>/dev/null)
+
+        # Verificar el estado del repositorio
+        local status=$(git status --porcelain 2>/dev/null)
+        local ahead=$(git rev-list --count @{upstream}..HEAD 2>/dev/null)
+        local behind=$(git rev-list --count HEAD..@{upstream} 2>/dev/null)
+
+        # Símbolos para el estado
+        local symbols=""
+        [[ -n $status ]] && symbols+="*"  # Archivos modificados
+        [[ $ahead -gt 0 ]] && symbols+="↑"  # Commits adelante
+        [[ $behind -gt 0 ]] && symbols+="↓"  # Commits atrás
+
+        # Colorear según la rama
+        if [[ $branch == "master" || $branch == "main" ]]; then
+            git_status=" \033[91m$branch$symbols\033[0m "  # Rojo
+        elif [[ $branch == "develop" || $branch == "dev" ]]; then
+            git_status="\[\033[93m\]($branch$symbols)\[\033[0m\]"  # Amarillo
+        else
+            git_status="\[\033[92m\]($branch$symbols)\[\033[0m\]"  # Verde
+        fi
+    fi
+
+    echo -e "$git_status"
+}
+
+# PS1 personalizado con información de Git
+export PS1='\[\033[48;2;0;95;135m\]\[\033[97m\] \H \[\033[0m\]\[\033[100m\]\[\033[97m\] \u \[\033[0m\] \[\033[97m\]~\[\033[0m\]$(git_prompt) '
+
