@@ -46,7 +46,6 @@ highlight CursorLineNr ctermfg=214 ctermbg=none
 
 " Mostrar números de línea
 set number
-set relativenumber
 
 " Resaltar línea actual
 set cursorline
